@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Corretor de Redações - Área do Aluno</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; }
+    textarea { width: 100%; height: 200px; margin-bottom: 10px; }
+    button { padding: 8px 16px; }
+    #resultado { white-space: pre-wrap; margin-top: 20px; border: 1px solid #ccc; padding: 10px; }
+    .topbar { display: flex; justify-content: space-between; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>Corretor de Redações</h1>
+    <a href="/logout">Sair</a>
+  </div>
+
+  <p>Cole sua redação abaixo e clique em "Corrigir":</p>
+  <textarea id="redacao"></textarea>
+  <button id="corrigirBtn">Corrigir</button>
+
+  <div id="resultado"></div>
+
+  <script>
+    const btn = document.getElementById("corrigirBtn");
+    const resultado = document.getElementById("resultado");
+
+    btn.addEventListener("click", async () => {
+      const texto = document.getElementById("redacao").value.trim();
+      if (!texto) {
+        alert("Digite ou cole o texto da redação.");
+        return;
+      }
+
+      resultado.textContent = "Enviando para correção...";
+
+      try {
+        const res = await fetch("/api/corrigir", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ redacao: texto }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          resultado.textContent = "Erro: " + (err.error || res.statusText);
+          return;
+        }
+
+        const data = await res.json();
+        resultado.textContent = data.correcao;
+      } catch (e) {
+        resultado.textContent = "Erro ao se comunicar com o servidor.";
+      }
+    });
+  </script>
+</body>
+</html>
